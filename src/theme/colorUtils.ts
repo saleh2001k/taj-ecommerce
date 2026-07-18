@@ -8,7 +8,7 @@ function parseHex(hex: string): { r: number; g: number; b: number } {
   if (h.length === 3) {
     h = h
       .split('')
-      .map((c) => c + c)
+      .map(c => c + c)
       .join('');
   }
   const int = parseInt(h, 16);

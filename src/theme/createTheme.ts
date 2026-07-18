@@ -56,7 +56,7 @@ export function createTheme(
   brand: BrandKey,
   scheme: ColorScheme,
   font: FontFamilyKey = DEFAULT_FONT,
-  radius: RadiusSetting = DEFAULT_RADIUS
+  radius: RadiusSetting = DEFAULT_RADIUS,
 ) {
   const def = brands[brand];
   const p = def.palette[scheme];
@@ -97,6 +97,9 @@ export function createTheme(
 
       // ── derived: structural ──
       overlay: withAlpha('#000000', isDark ? 0.6 : 0.4),
+      // Text/icons sitting on top of a dark image scrim — always near-white,
+      // in both schemes, since the scrim is dark either way.
+      onOverlay: '#F8FAFC',
       backdrop: withAlpha('#000000', 0.6),
       skeleton: withAlpha(p.text, 0.08),
       pressed: withAlpha(p.text, 0.08),

@@ -2,11 +2,11 @@
 import { View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create(theme => ({
   divider: {
-    height: theme.borderWidths.thin,
     alignSelf: 'stretch',
     backgroundColor: theme.colors.border,
+    height: theme.borderWidths.thin,
     marginVertical: theme.spacing.md,
   },
 }));

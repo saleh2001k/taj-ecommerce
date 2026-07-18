@@ -3,15 +3,22 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./src/*"
+      "@/*": ["./src/*"],
+      // Point TS at the library's BUILT declarations instead of its shipped
+      // src/ (the `react-native` customCondition would otherwise make tsc
+      // type-check the package's own source, which doesn't compile against
+      // this app's newer gesture-handler/reanimated types). Metro resolution
+      // is unaffected — it doesn't read tsconfig paths.
+      "react-native-screen-transitions": [
+        "./node_modules/react-native-screen-transitions/lib/typescript/shared/index.d.ts"
+      ],
+      "react-native-screen-transitions/blank-stack": [
+        "./node_modules/react-native-screen-transitions/lib/typescript/blank-stack/index.d.ts"
+      ],
+      "react-native-screen-transitions/native-stack": [
+        "./node_modules/react-native-screen-transitions/lib/typescript/native-stack/index.d.ts"
       ]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

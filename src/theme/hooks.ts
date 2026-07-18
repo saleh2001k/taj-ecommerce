@@ -7,6 +7,14 @@
  *
  * Display labels for brands/modes/languages live in i18n resources
  * (`brands.*`, `modes.*`, `languages.*`) — options here are keys only.
+ *
+ * ⚠️ `useAppTheme()` subscribes the caller to EVERY theme change and re-renders
+ * it, which defeats Unistyles' ShadowTree updates. Reach for it only when a
+ * theme value must become a plain prop for code Unistyles can't style — React
+ * Navigation options, `ActivityIndicator color`, third-party components. For
+ * anything you style yourself, read the theme inside `StyleSheet.create` (pass
+ * a token in via a dynamic function if it depends on props) and the update
+ * happens natively with no re-render.
  */
 import { useUnistyles } from 'react-native-unistyles';
 import { useShallow } from 'zustand/react/shallow';
@@ -31,7 +39,6 @@ export type ThemeControls = {
   font: FontFamilyKey;
   radius: RadiusSetting;
   language: Language;
-  isDark: boolean;
   isRTL: boolean;
 
   setBrand: (brand: BrandKey) => void;
@@ -50,7 +57,7 @@ export type ThemeControls = {
 };
 
 // Font labels are typeface names (proper nouns) — not translated.
-const FONT_OPTIONS = fontKeys.map((k) => ({
+const FONT_OPTIONS = fontKeys.map(k => ({
   key: k,
   label: FONTS[k].label,
   sample: FONTS[k].sample,
@@ -59,10 +66,12 @@ const MODE_OPTIONS: ThemeMode[] = ['system', 'light', 'dark'];
 const LANGUAGE_OPTIONS: Language[] = ['en', 'ar'];
 
 export function useThemeControls(): ThemeControls {
-  const theme = useAppTheme();
+  // Deliberately does NOT call useAppTheme(): these are the user's persisted
+  // CHOICES, not the resolved theme. Subscribing to the theme here would
+  // re-render every settings screen on each theme change for no benefit.
   const { brand, mode, font, radius, language, setBrand, setMode, setFont, setRadius, reset } =
     useSettings(
-      useShallow((s) => ({
+      useShallow(s => ({
         brand: s.brand,
         mode: s.mode,
         font: s.font,
@@ -73,7 +82,7 @@ export function useThemeControls(): ThemeControls {
         setFont: s.setFont,
         setRadius: s.setRadius,
         reset: s.reset,
-      }))
+      })),
     );
 
   return {
@@ -82,14 +91,13 @@ export function useThemeControls(): ThemeControls {
     font,
     radius,
     language,
-    isDark: theme.isDark,
     isRTL: isRTL(language),
 
     setBrand,
     setMode,
     setFont,
     setRadius,
-    setLanguage: (next) => {
+    setLanguage: next => {
       if (next === language) return;
       void changeAppLanguage(next);
     },

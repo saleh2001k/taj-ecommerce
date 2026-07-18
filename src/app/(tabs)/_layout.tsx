@@ -1,48 +1,111 @@
-import { Link, Slot, Tabs, usePathname } from 'expo-router';
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { Link, Slot, usePathname } from 'expo-router';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { SymbolView, type AndroidSymbol, type SymbolViewProps } from 'expo-symbols';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import type { SFSymbol } from 'sf-symbols-typescript';
 
-import { Text } from '@/components/ui';
+import { H3, Label } from '@/components/ui';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-import { breakpoints, useAppTheme } from '@/theme';
+import { breakpoints } from '@/theme';
+import { iconSizes } from '@/theme/tokens';
+
+/**
+ * SymbolView colours itself through a `tintColor` PROP, not a style, so
+ * Unistyles can't reach it on its own. `withUnistyles` subscribes just this
+ * component to the theme: when the theme changes only the icon re-renders,
+ * instead of `useAppTheme()` in the layout re-rendering the whole nav (and
+ * every piece of text inside it).
+ */
+const UniSymbolView = withUnistyles(SymbolView);
+
+/**
+ * The native tab bar is a real UITabBarController / Material tab bar, so it is
+ * configured entirely through PROPS (colours, label style) rather than styles —
+ * Unistyles can't reach it either. Same treatment: `withUnistyles` keeps the
+ * tab bar themed while re-rendering only itself.
+ */
+const UniNativeTabs = withUnistyles(NativeTabs, theme => ({
+  tintColor: theme.colors.primary,
+  backgroundColor: theme.colors.surface,
+  iconColor: { default: theme.colors.textMuted, selected: theme.colors.primary },
+  labelStyle: {
+    default: { color: theme.colors.textMuted, fontFamily: theme.typography.family.medium },
+    selected: { color: theme.colors.primary, fontFamily: theme.typography.family.medium },
+  },
+  rippleColor: theme.colors.primaryMuted,
+  indicatorColor: theme.colors.primaryMuted,
+}));
 
 type NavItem = {
-  href: '/' | '/two';
-  labelKey: 'nav.showcase' | 'nav.settings';
+  /** Route file name inside (tabs) — what NativeTabs.Trigger binds to. */
+  name: 'index' | 'shop' | 'components' | 'profile';
+  href: '/' | '/shop' | '/components' | '/profile';
+  labelKey: 'nav.home' | 'nav.shop' | 'nav.components' | 'nav.profile';
+  /** Web nav bar (expo-symbols). */
   icon: SymbolViewProps['name'];
+  /** Native tab bar: real SF Symbols on iOS, Material Symbols on Android. */
+  sf: { default: SFSymbol; selected: SFSymbol };
+  md: AndroidSymbol;
 };
 
 const NAV_ITEMS: NavItem[] = [
   {
+    name: 'index',
     href: '/',
-    labelKey: 'nav.showcase',
-    icon: { ios: 'paintpalette.fill', android: 'palette', web: 'palette' },
+    labelKey: 'nav.home',
+    icon: { ios: 'house.fill', android: 'home', web: 'home' },
+    sf: { default: 'house', selected: 'house.fill' },
+    md: 'home',
   },
   {
-    href: '/two',
-    labelKey: 'nav.settings',
-    icon: { ios: 'gearshape.fill', android: 'settings', web: 'settings' },
+    name: 'shop',
+    href: '/shop',
+    labelKey: 'nav.shop',
+    icon: { ios: 'bag.fill', android: 'shopping_bag', web: 'shopping_bag' },
+    sf: { default: 'bag', selected: 'bag.fill' },
+    md: 'shopping_bag',
+  },
+  {
+    name: 'components',
+    href: '/components',
+    labelKey: 'nav.components',
+    icon: { ios: 'square.grid.2x2.fill', android: 'grid_view', web: 'grid_view' },
+    sf: { default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' },
+    md: 'grid_view',
+  },
+  {
+    name: 'profile',
+    href: '/profile',
+    labelKey: 'nav.profile',
+    icon: { ios: 'person.fill', android: 'person', web: 'person' },
+    sf: { default: 'person', selected: 'person.fill' },
+    md: 'person',
   },
 ];
 
 export default function TabLayout() {
-  const { width } = useWindowDimensions();
-  // Website chrome (top nav) only on wide web; native + narrow web stay app-like.
-  // Deferred to the client so SSR is deterministic (no hydration mismatch).
-  const isWebsite = useClientOnlyValue(false, Platform.OS === 'web' && width >= breakpoints.md);
+  // "There is no standard system tab bar on web" (Expo docs), and the JS Tabs
+  // navigator clips its screens to zero height there — so web ALWAYS gets the
+  // website chrome (responsive top nav), and the real system tab bar stays
+  // native-only. Platform.OS is constant, so this branch never flips at runtime.
+  if (Platform.OS === 'web') return <WebsiteLayout />;
 
-  if (isWebsite) return <WebsiteLayout />;
-  return <MobileTabs />;
+  return <NativeBottomTabs />;
 }
 
-/* ── Wide web: top navigation bar + routed content ── */
+/* ── Web: top navigation bar + routed content (compact below md) ── */
 
 function WebsiteLayout() {
-  const theme = useAppTheme();
+  // No useAppTheme() here on purpose — it would re-render this whole subtree
+  // (and all its text) on every theme change. Icon colours go through
+  // withUnistyles/uniProps; sizes and hit slop are GLOBAL tokens that are
+  // identical in every theme, so they never needed the theme at all.
   const pathname = usePathname();
-  const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  // Icon-only nav on narrow web; deferred to the client so SSR is deterministic.
+  const compact = useClientOnlyValue(false, width < breakpoints.md);
 
   return (
     <View style={styles.root}>
@@ -50,44 +113,31 @@ function WebsiteLayout() {
         <View style={styles.headerInner}>
           <Link href="/" asChild>
             <Pressable>
-              <Text variant="h3" color="primary">
-                {t('nav.brand')}
-              </Text>
+              <H3 tx="nav.brand" color="primary" style={styles.brand} />
             </Pressable>
           </Link>
 
           <View style={styles.navLinks}>
-            {NAV_ITEMS.map((item) => {
+            {NAV_ITEMS.map(item => {
               const active = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href} asChild>
                   <Pressable style={styles.navLink(active)}>
-                    <SymbolView
+                    <UniSymbolView
                       name={item.icon}
-                      size={theme.iconSizes.sm}
-                      tintColor={active ? theme.colors.primary : theme.colors.textMuted}
+                      size={iconSizes.sm}
+                      uniProps={theme => ({
+                        tintColor: active ? theme.colors.primary : theme.colors.textMuted,
+                      })}
                     />
-                    <Text variant="label" color={active ? 'primary' : 'textMuted'}>
-                      {t(item.labelKey)}
-                    </Text>
+                    {!compact && (
+                      <Label tx={item.labelKey} color={active ? 'primary' : 'textMuted'} />
+                    )}
                   </Pressable>
                 </Link>
               );
             })}
           </View>
-
-          <Link href="/modal" asChild>
-            <Pressable hitSlop={theme.hitSlop.md}>
-              {({ pressed }) => (
-                <SymbolView
-                  name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                  size={theme.iconSizes.lg}
-                  tintColor={theme.colors.text}
-                  style={{ opacity: pressed ? theme.opacity.pressed : theme.opacity.full }}
-                />
-              )}
-            </Pressable>
-          </Link>
         </View>
       </View>
 
@@ -98,108 +148,86 @@ function WebsiteLayout() {
   );
 }
 
-/* ── Native / narrow web: bottom tab bar (app-like) ── */
+/* ── Native: the platform's own bottom tab bar ── */
 
-function MobileTabs() {
-  const theme = useAppTheme();
+/**
+ * NativeTabs renders the real system tab bar — UITabBarController on iOS,
+ * Material tabs on Android — instead of a JS-drawn one. That buys the native
+ * look, gestures and (iOS 26) liquid-glass / minimize-on-scroll for free.
+ *
+ * A native tab bar has NO header — each screen draws its own (see
+ * `ui/Header.tsx` and the per-screen editorial titles).
+ */
+function NativeBottomTabs() {
   const { t } = useTranslation();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.border,
-        },
-        tabBarLabelStyle: { fontFamily: theme.typography.family.medium },
-        headerStyle: { backgroundColor: theme.colors.surface },
-        headerTintColor: theme.colors.text,
-        headerTitleStyle: { fontFamily: theme.typography.family.semibold },
-        headerShown: useClientOnlyValue(false, true),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('nav.showcase'),
-          tabBarIcon: ({ color }) => (
-            <SymbolView name={NAV_ITEMS[0].icon} tintColor={color} size={theme.iconSizes.xl} />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable hitSlop={theme.hitSlop.md} style={{ marginHorizontal: theme.spacing.lg }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={theme.iconSizes.lg}
-                    tintColor={theme.colors.text}
-                    style={{ opacity: pressed ? theme.opacity.pressed : theme.opacity.full }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: t('nav.settings'),
-          tabBarIcon: ({ color }) => (
-            <SymbolView name={NAV_ITEMS[1].icon} tintColor={color} size={theme.iconSizes.xl} />
-          ),
-        }}
-      />
-    </Tabs>
+    <UniNativeTabs>
+      {NAV_ITEMS.map(item => (
+        <NativeTabs.Trigger key={item.name} name={item.name}>
+          {/* Real SF Symbols / Material Symbols — resolved by the OS, not drawn by us. */}
+          <NativeTabs.Trigger.Icon sf={item.sf} md={item.md} />
+          <NativeTabs.Trigger.Label>{t(item.labelKey)}</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
+      ))}
+    </UniNativeTabs>
   );
 }
 
 const styles = StyleSheet.create((theme, rt) => ({
-  root: {
-    // Definite viewport height so the fixed header + scrolling content split it.
-    // (On web the Stack screen container is auto-height, which would collapse a
-    // plain flex:1 chain to zero and hide the <Slot/> content.)
-    height: rt.screen.height,
-    backgroundColor: theme.colors.background,
+  brand: {
+    letterSpacing: theme.typography.letterSpacing.wider,
+  },
+  content: {
+    flex: 1,
   },
   header: {
-    flexShrink: 0,
     backgroundColor: theme.colors.surface,
-    borderBottomWidth: theme.borderWidths.thin,
     borderBottomColor: theme.colors.border,
+    borderBottomWidth: theme.borderWidths.thin,
+    flexShrink: 0,
+    // FIXED height — `Screen` subtracts `webNavHeight` to size tab pages, so
+    // the nav must actually be that tall (border included, box-sizing).
+    height: rt.insets.top + theme.layout.webNavHeight,
     paddingTop: rt.insets.top,
     ...theme.shadows.sm,
     zIndex: theme.zIndex.sticky,
   },
   headerInner: {
-    width: '100%',
-    maxWidth: theme.layout.navMaxWidth,
+    alignItems: 'center',
     alignSelf: 'center',
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     gap: theme.spacing.lg,
+    height: '100%',
+    justifyContent: 'space-between',
+    maxWidth: theme.layout.navMaxWidth,
     paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
+    width: '100%',
   },
-  navLinks: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    flex: 1,
-    marginHorizontal: theme.spacing.xl,
-  },
-  navLink: (active: boolean) => ({
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    backgroundColor: active ? theme.colors.primaryMuted : 'transparent',
+  infoIcon: (pressed: boolean) => ({
+    opacity: pressed ? theme.opacity.pressed : theme.opacity.full,
   }),
-  content: {
+  navLink: (active: boolean) => ({
+    alignItems: 'center',
+    backgroundColor: active ? theme.colors.primaryMuted : 'transparent',
+    borderRadius: theme.radius.md,
+    flexDirection: 'row',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  }),
+  navLinks: {
+    alignItems: 'center',
+    flexDirection: 'row',
     flex: 1,
+    gap: theme.spacing.xs,
+    marginHorizontal: { xs: theme.spacing.sm, md: theme.spacing.xl },
+  },
+  root: {
+    backgroundColor: theme.colors.background,
+    // Definite viewport height so the fixed header + scrolling content split it.
+    // (On web the Stack screen container is auto-height, which would collapse a
+    // plain flex:1 chain to zero and hide the <Slot/> content.)
+    height: rt.screen.height,
   },
 }));

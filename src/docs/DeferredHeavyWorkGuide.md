@@ -128,4 +128,3 @@ Instead of deferring “everything heavy”, mount section content only when a s
 - API hooks for a section run only when expanded
 
 This is usually the best approach for filter modals with multiple accordion sections.
-

@@ -2,6 +2,22 @@
   "name": "ecommerce-app",
   "main": "index.ts",
   "version": "1.0.0",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "android:apk": "node scripts/build-android-apk.js",
+    "web": "expo start --web",
+    "prebuild": "expo prebuild --clean",
+    "prebuild:android": "expo prebuild --clean --platform android",
+    "prebuild:ios": "expo prebuild --clean --platform ios",
+    "prebuild:web": "expo prebuild --clean --platform web"
+  },
   "dependencies": {
     "@expo-google-fonts/cairo": "^0.4.2",
     "@expo-google-fonts/ibm-plex-sans-arabic": "^0.4.2",
@@ -15,6 +31,7 @@
     "expo-constants": "~57.0.5",
     "expo-font": "~57.0.1",
     "expo-image": "^57.0.1",
+    "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.3",
     "expo-localization": "~57.0.1",
     "expo-router": "~57.0.6",
@@ -39,6 +56,7 @@
     "react-native-reanimated": "^4.5.1",
     "react-native-rtl": "^0.1.0",
     "react-native-safe-area-context": "~5.7.0",
+    "react-native-screen-transitions": "^3.8.0",
     "react-native-screens": "4.25.2",
     "react-native-svg": "^15.15.5",
     "react-native-unistyles": "^3.3.0",
@@ -47,18 +65,28 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@eslint/js": "^9",
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "eslint": "^9",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-compiler": "^19.1.0-rc.2",
+    "eslint-plugin-react-doctor": "^0.7.8",
+    "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-react-native-unistyles": "^3.0.7",
+    "eslint-plugin-zustand-rules": "^1.0.2",
+    "prettier": "^3.9.5",
+    "reactotron-core-client": "^2.10.0",
+    "reactotron-plugin-zustand": "^2.0.9",
+    "reactotron-react-js": "^3.3.17",
+    "reactotron-react-native": "^5.2.0",
+    "reactotron-react-native-mmkv": "^0.2.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.64.0"
   },
-  "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
-    "prebuild": "expo prebuild --clean",
-    "prebuild:android": "expo prebuild --clean --platform android",
-    "prebuild:ios": "expo prebuild --clean --platform ios",
-    "prebuild:web": "expo prebuild --clean --platform web"
-  },
-  "private": true
+  "private": true,
+  "patchedDependencies": {
+    "react-native-screen-transitions@3.8.0": "patches/react-native-screen-transitions@3.8.0.patch"
+  }
 }

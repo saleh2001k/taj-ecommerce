@@ -11,6 +11,7 @@
  * registered themes, the theme picker UI) picks it up automatically.
  */
 import {
+  atelierPalette,
   forestPalette,
   oceanPalette,
   sunsetPalette,
@@ -27,6 +28,12 @@ export type BrandDefinition = {
 };
 
 export const brands = {
+  atelier: {
+    key: 'atelier',
+    label: 'Atelier',
+    palette: atelierPalette,
+    radius: RADIUS_PROFILES.minimal,
+  },
   ocean: {
     key: 'ocean',
     label: 'Ocean',
@@ -47,11 +54,11 @@ export const brands = {
   },
 } as const satisfies Record<string, BrandDefinition>;
 
-export type BrandKey = 'ocean' | 'sunset' | 'forest';
+export type BrandKey = 'atelier' | 'ocean' | 'sunset' | 'forest';
 export type ColorScheme = 'light' | 'dark';
 
 export const brandKeys = Object.keys(brands) as BrandKey[];
-export const DEFAULT_BRAND: BrandKey = 'ocean';
+export const DEFAULT_BRAND: BrandKey = 'atelier';
 
 /** Registered Unistyles theme name, e.g. ('ocean','dark') -> 'oceanDark'. */
 export function themeName(brand: BrandKey, scheme: ColorScheme): AppThemeName {

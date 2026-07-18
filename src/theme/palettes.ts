@@ -30,6 +30,39 @@ export type PaletteVariants = {
   dark: Palette;
 };
 
+/**
+ * The house brand — an editorial, fashion-forward monochrome. Warm ink on
+ * undyed-muslin bone, with antique brass (haberdashery hardware) as the accent
+ * and a raw-denim indigo as the secondary. CTAs read as "fashion black" in
+ * light mode and invert to bone in dark mode (onColor derives the flip).
+ */
+export const atelierPalette: PaletteVariants = {
+  light: {
+    primary: '#211D19',
+    secondary: '#3F5573',
+    accent: '#8F6A28',
+    background: '#F6F3EE',
+    surface: '#FFFFFF',
+    text: '#211D19',
+    textMuted: '#756D62',
+    border: '#E6E0D6',
+    success: '#3E7C4F',
+    danger: '#B23B34',
+  },
+  dark: {
+    primary: '#EDE6DB',
+    secondary: '#A9BEDF',
+    accent: '#E0B76F',
+    background: '#141210',
+    surface: '#1E1B18',
+    text: '#F2EDE4',
+    textMuted: '#A79D8F',
+    border: '#37322B',
+    success: '#6BBF7E',
+    danger: '#E2695F',
+  },
+};
+
 export const oceanPalette: PaletteVariants = {
   light: {
     primary: '#1C7ED6',

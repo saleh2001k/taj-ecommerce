@@ -16,8 +16,8 @@ export default function Root({ children }: { children: ReactNode }) {
           content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
         <ScrollViewStyleReset />
-        {/* First-paint background matches the default (Ocean) theme so there is no
-            flash before Unistyles' CSS variables take over. */}
+        {/* First-paint background matches the default (Atelier) theme so there
+            is no flash before Unistyles' CSS variables take over. */}
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
       </head>
       <body>{children}</body>
@@ -26,7 +26,7 @@ export default function Root({ children }: { children: ReactNode }) {
 }
 
 const responsiveBackground = `
-body { background-color: #F5F8FC; }
+body { background-color: #F6F3EE; }
 @media (prefers-color-scheme: dark) {
-  body { background-color: #0A0F14; }
+  body { background-color: #141210; }
 }`;

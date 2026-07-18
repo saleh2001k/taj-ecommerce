@@ -1,0 +1,15 @@
+# Build output & generated
+dist
+build
+.expo
+web-build
+expo-env.d.ts
+
+# Native projects (managed by prebuild)
+android
+ios
+
+# Lockfiles & vendored
+bun.lock
+package-lock.json
+yarn.lock

@@ -15,11 +15,7 @@ import {
   Cairo_600SemiBold,
   Cairo_700Bold,
 } from '@expo-google-fonts/cairo';
-import {
-  Tajawal_400Regular,
-  Tajawal_500Medium,
-  Tajawal_700Bold,
-} from '@expo-google-fonts/tajawal';
+import { Tajawal_400Regular, Tajawal_500Medium, Tajawal_700Bold } from '@expo-google-fonts/tajawal';
 import {
   IBMPlexSansArabic_400Regular,
   IBMPlexSansArabic_500Medium,

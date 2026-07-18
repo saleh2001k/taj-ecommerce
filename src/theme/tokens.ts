@@ -37,16 +37,40 @@ export const fontSizes = {
   display: 44,
 } as const;
 
-export const lineHeights = {
-  xs: 16,
-  sm: 20,
-  md: 24,
-  lg: 26,
-  xl: 30,
-  xxl: 36,
-  xxxl: 42,
-  display: 52,
-} as const;
+/**
+ * Line-height ratio — DERIVED FROM THE BUNDLED FONTS, not chosen by eye.
+ *
+ * A font declares the line box it needs (ascender + descender). Set `lineHeight`
+ * BELOW that and the leading goes negative: the text engine still places the
+ * baseline using the font's full ascent, so glyphs get pushed out of their line
+ * box — clipped on native, overlapping on web — and the leftover slack collects
+ * on one side, which reads as phantom padding. It is worst in whichever script
+ * uses the most of the ascent (Arabic marks), but it is NOT a per-font quirk to
+ * special-case: it is what any font does when the line box is too small.
+ *
+ * Measured from the actual .ttf files we ship (OS/2 + hhea, honouring
+ * USE_TYPO_METRICS) — intrinsic line box, in em:
+ *
+ *   Cairo               1.883   <- the tallest; it sets this ratio
+ *   IBM Plex Arabic     1.729
+ *   Rubik               1.532
+ *   Tajawal             1.476
+ *
+ * So 1.9 is the smallest ratio that is safe for EVERY bundled face in BOTH
+ * scripts. The previous 1.2 was a number invented without reference to any of
+ * this; it only ever looked right in Rubik (typo ratio 1.185) and clipped Cairo
+ * at every size by 9–30px.
+ *
+ * Re-derive with `node scratchpad/font-metrics.mjs` if a font is added or
+ * swapped — a face with a taller box raises this number. Lowering it to chase a
+ * tighter look re-introduces the clipping.
+ */
+export const LINE_HEIGHT_RATIO = 1.9;
+
+/** Computed from `fontSizes`, so a new size can never miss its line height. */
+export const lineHeights = Object.fromEntries(
+  Object.entries(fontSizes).map(([token, size]) => [token, Math.ceil(size * LINE_HEIGHT_RATIO)]),
+) as Record<keyof typeof fontSizes, number>;
 
 /** Semantic weight names → the font-weight *slot* they map to (see fonts.ts). */
 export const fontWeights = {
@@ -125,6 +149,12 @@ export const layout = {
   contentMaxWidth: 960,
   /** Wider cap for the website top nav bar. */
   navMaxWidth: 1120,
+  /**
+   * FIXED height of the website top nav (web only). A constant, not a
+   * measurement: `Screen` subtracts it to size tab pages, because the router's
+   * web containers are auto-height and can't propagate a percentage down.
+   */
+  webNavHeight: 64,
 } as const;
 
 /**

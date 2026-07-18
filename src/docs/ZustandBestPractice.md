@@ -178,13 +178,13 @@ useAuthStore.subscribe(
 
 ## 8. Common Anti-Patterns to Avoid
 
-| Anti-pattern                             | Why it's bad                                  | Fix                            |
-| ---------------------------------------- | --------------------------------------------- | ------------------------------ |
-| `useStore()` with no selector            | Re-renders on every store change              | Use a selector or `useShallow` |
-| Creating stores inside components        | Store recreates on every render, losing state | Create stores at module scope  |
-| Storing derived/computed values          | State duplication, sync issues                | Compute in a selector instead  |
+| Anti-pattern                             | Why it's bad                                  | Fix                                       |
+| ---------------------------------------- | --------------------------------------------- | ----------------------------------------- |
+| `useStore()` with no selector            | Re-renders on every store change              | Use a selector or `useShallow`            |
+| Creating stores inside components        | Store recreates on every render, losing state | Create stores at module scope             |
+| Storing derived/computed values          | State duplication, sync issues                | Compute in a selector instead             |
 | Expensive selectors without memoization  | Runs on every render                          | Memoize with `useMemo`, or use `reselect` |
-| Using Zustand in React Server Components | State can leak between users                  | Use only in client components  |
+| Using Zustand in React Server Components | State can leak between users                  | Use only in client components             |
 
 ---
 
@@ -202,8 +202,8 @@ If you are upgrading from v4, be aware of:
    import { shallow } from 'zustand/shallow';
 
    const useStore = createWithEqualityFn<State>()(
-     (set) => ({ /* ... */ }),
-     shallow // default equality function for all selectors
+     set => ({/* ... */}),
+     shallow, // default equality function for all selectors
    );
    ```
 6. **Selectors returning new references** — can now cause infinite loops in some patterns. Use `useShallow` to guard against this.

@@ -6,41 +6,123 @@ import type { AppTranslation } from './en';
 
 export const ar: AppTranslation = {
   nav: {
-    brand: 'المتجر',
-    showcase: 'المعرض',
-    settings: 'الإعدادات',
+    brand: 'أتولييه',
+    home: 'الرئيسية',
+    shop: 'المتجر',
+    components: 'المكونات',
+    profile: 'الملف الشخصي',
     about: 'حول',
     modalTitle: 'حول',
+    back: 'رجوع',
   },
 
-  showcase: {
-    title: 'معرض السمات',
-    subtitle: 'السمة: {{brand}}  ·  الوضع: {{mode}}  ·  الخط: {{font}}',
-    paletteSection: 'الألوان · ١٠ أدوار (فاتح + داكن)',
-    typographySection: 'الخطوط',
-    display: 'عرض كبير',
-    heading: 'عنوان رئيسي',
-    titleSample: 'عنوان',
-    bodySample: 'نص أساسي — الثعلب البني السريع. English text here.',
-    captionSample: 'شرح / باهت',
-    buttonsSection: 'الأزرار',
-    buttonPrimary: 'أساسي',
-    buttonSecondary: 'ثانوي',
-    buttonAccent: 'مميز',
-    buttonOutline: 'محدد',
-    buttonGhost: 'شفاف',
-    buttonDanger: 'خطر',
-    buttonLoading: 'عرض كامل · تحميل',
-    radiusSection: 'الاستدارة (شكل السمة)',
-    radiusHint:
-      'لكل سمة شكلها الخاص — المحيط مستدير، الغروب ناعم، الغابة بسيط. يمكنك تغييره من الإعدادات.',
-    cardTitle: 'بطاقة مرتفعة',
-    cardBody:
-      'سطح + حدود + استدارة السمة + ظل يتكيف مع الوضع. كل شيء هنا مبني على الرموز — لا قيم ثابتة.',
+  profile: {
+    title: 'الملف الشخصي',
+    guest: 'متسوّق ضيف',
+    tagline: 'سجّل الدخول لمزامنة الحقيبة والمفضلة عبر أجهزتك.',
+    orders: 'الطلبات',
+    wishlist: 'المفضلة',
+    bag: 'الحقيبة',
+    search: 'البحث',
+    preferences: 'التفضيلات',
+    about: 'حول',
+  },
+
+  preferences: {
+    title: 'التفضيلات',
+  },
+
+  bag: {
+    title: 'الحقيبة',
+    items: '{{count}} قطعة',
+    empty: 'حقيبتك فارغة.',
+    browse: 'تصفّح المتجر',
+    size: 'المقاس {{size}}',
+    total: 'الإجمالي',
+    checkout: 'إتمام الشراء',
+    note: 'يُحتسب الشحن والضرائب عند إتمام الشراء.',
+  },
+
+  search: {
+    title: 'البحث',
+    placeholder: 'ابحث في المجموعة…',
+    results: '{{count}} نتيجة',
+    empty: 'لا شيء يطابق بحثك.',
+    categories: 'الفئات',
+  },
+
+  orders: {
+    title: 'الطلبات',
+    order: 'طلب {{id}}',
+    items: 'القطع: {{count}}',
+    total: 'الإجمالي',
+    status: {
+      delivered: 'تم التوصيل',
+      shipped: 'تم الشحن',
+      processing: 'قيد المعالجة',
+    },
+  },
+
+  wishlist: {
+    title: 'المفضلة',
+    saved: '{{count}} محفوظة',
+    empty: 'لا شيء محفوظ بعد. اضغط على القلب على أي قطعة لحفظها هنا.',
+    browse: 'تصفّح المتجر',
+  },
+
+  home: {
+    heroEyebrow: 'خريف / شتاء ٢٠٢٦',
+    heroTitle: 'أناقة مدروسة',
+    heroSubtitle: 'أقمشة مدروسة، ألوان هادئة، صُنعت لتدوم.',
+    shopNow: 'تسوّق المجموعة',
+    shopByCategory: 'تسوّق حسب الفئة',
+    featured: 'مميّز',
+    newArrivals: 'وصل حديثًا',
+    viewAll: 'عرض الكل',
+    promo: 'شحن مجاني للطلبات فوق ١٥٠$ · إرجاع خلال ٣٠ يومًا',
+  },
+
+  catalog: {
+    title: 'المتجر',
+    subtitle: '{{count}} قطعة',
+    all: 'الكل',
+    new: 'جديد',
+    sale: 'تخفيض',
+    empty: 'لا يوجد شيء في هذه الفئة بعد.',
+    categories: {
+      tops: 'قمصان',
+      outerwear: 'ملابس خارجية',
+      bottoms: 'بناطيل',
+      shoes: 'أحذية',
+      accessories: 'إكسسوارات',
+    },
+  },
+
+  product: {
+    colorLabel: 'اللون',
+    sizeLabel: 'المقاس',
+    selectSize: 'اختر مقاسًا',
+    addToCart: 'أضف إلى الحقيبة',
+    added: 'أُضيف إلى الحقيبة',
+    description: 'الوصف',
+    descriptionBody:
+      'قطعة أساسية في خزانتك مصنوعة من قماش فاخر بقَصّة أنيقة تُنسّق بسهولة عبر كل المواسم.',
+    shipping: 'شحن مجاني للطلبات فوق ١٥٠$ · إرجاع خلال ٣٠ يومًا',
+    ratingReviews: '{{rating}} · {{count}} تقييم',
+    youMayLike: 'قد يعجبك أيضًا',
+  },
+
+  components: {
+    title: 'المكونات',
+    subtitle: 'اللبنات الأساسية للتطبيق — اضغط على أي منها لرؤية جميع أنواعها.',
+    useCases: 'حالات الاستخدام',
   },
 
   settings: {
-    title: 'المظهر',
+    title: 'الإعدادات',
+    appearanceSection: 'المظهر',
+    languageSection: 'اللغة والمنطقة',
+    aboutSection: 'حول',
     intro: 'كل ما يلي يُحفظ في التخزين ويُطبَّق فورًا.',
     brandField: 'سمة العلامة',
     modeField: 'الوضع',
@@ -49,6 +131,7 @@ export const ar: AppTranslation = {
     languageField: 'اللغة / الاتجاه',
     rtlNote: 'التبديل إلى English يقلب التخطيط بالكامل فورًا — بدون إعادة تحميل.',
     reset: 'إعادة التعيين للافتراضي',
+    version: 'الإصدار {{version}}',
   },
 
   modal: {
@@ -65,6 +148,7 @@ export const ar: AppTranslation = {
   },
 
   brands: {
+    atelier: 'أتولييه',
     ocean: 'المحيط',
     sunset: 'الغروب',
     forest: 'الغابة',

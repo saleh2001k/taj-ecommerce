@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from 'expo-router';
 import { LocaleDirContext } from 'expo-router/react-navigation';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -6,13 +6,15 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
-import 'react-native-reanimated';
 
 // Side-effect: i18next must be initialized before any screen calls t().
 // (Web static rendering imports route modules outside the /index.ts entry.)
 import '@/i18n';
+import { Stack } from '@/navigation/stack';
+import { bagSheet, dropdown, slideOver, zoomIn } from '@/navigation/transitions';
 import { useSettings } from '@/store/settings';
 import { isRTL, ThemeController, useAppFonts, useAppTheme } from '@/theme';
 
@@ -65,7 +67,8 @@ function RootLayoutNav() {
   const theme = useAppTheme();
   const navigationTheme = useNavigationTheme();
   const { t } = useTranslation();
-  const language = useSettings((s) => s.language);
+  const language = useSettings(s => s.language);
+  const rtl = isRTL(language);
 
   return (
     <GestureHandlerRootView style={styles.flex}>
@@ -77,21 +80,33 @@ function RootLayoutNav() {
               defaults to the CACHED startup I18nManager constant. Track the
               live language instead so push/pop animations and the iOS
               swipe-back gesture mirror on a runtime flip (react-native-rtl). */}
-          <LocaleDirContext.Provider value={isRTL(language) ? 'rtl' : 'ltr'}>
+          <LocaleDirContext.Provider value={rtl ? 'rtl' : 'ltr'}>
             <ThemeProvider value={navigationTheme}>
               <StatusBar style={theme.isDark ? 'light' : 'dark'} />
-              <Stack
-                screenOptions={{
-                  contentStyle: { backgroundColor: theme.colors.background },
-                  headerStyle: { backgroundColor: theme.colors.surface },
-                  headerTintColor: theme.colors.text,
-                  headerTitleStyle: { fontFamily: theme.typography.family.semibold },
-                }}>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              {/* Blank stack (react-native-screen-transitions): every push,
+                  gesture and shared-element morph is a Reanimated worklet, so
+                  Android and web animate the same as iOS. There is no native
+                  header anywhere — screens draw their own chrome (`AppHeader`);
+                  `title` still feeds the web <title>. */}
+              <Stack>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="product/[id]" options={{ ...slideOver(rtl), title: '' }} />
+                <Stack.Screen name="photo/[id]" options={{ ...slideOver(rtl), title: '' }} />
+                <Stack.Screen name="component/[slug]" options={{ ...zoomIn(), title: '' }} />
                 <Stack.Screen
-                  name="modal"
-                  options={{ presentation: 'modal', title: t('modal.title') }}
+                  name="preferences"
+                  options={{ ...slideOver(rtl), title: t('preferences.title') }}
                 />
+                <Stack.Screen
+                  name="orders"
+                  options={{ ...slideOver(rtl), title: t('orders.title') }}
+                />
+                <Stack.Screen
+                  name="wishlist"
+                  options={{ ...slideOver(rtl), title: t('wishlist.title') }}
+                />
+                <Stack.Screen name="search" options={{ ...dropdown(), title: t('search.title') }} />
+                <Stack.Screen name="bag" options={{ ...bagSheet(), title: t('bag.title') }} />
               </Stack>
             </ThemeProvider>
           </LocaleDirContext.Provider>
@@ -101,7 +116,8 @@ function RootLayoutNav() {
   );
 }
 
-const styles = StyleSheet.create({
-  // `flex: 1` is layout structure, not a themeable design token.
-  flex: { flex: 1 },
-});
+const styles = StyleSheet.create(theme => ({
+  // Backgrounds the whole navigator — the blank stack has no per-screen
+  // `contentStyle`, so the root supplies the colour behind transitions.
+  flex: { backgroundColor: theme.colors.background, flex: 1 },
+}));

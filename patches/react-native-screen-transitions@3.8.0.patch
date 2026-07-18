@@ -1,0 +1,178 @@
+diff --git a/node_modules/react-native-screen-transitions/.bun-tag-2774caa583d55c61 b/.bun-tag-2774caa583d55c61
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/react-native-screen-transitions/.bun-tag-60cb6564310553ac b/.bun-tag-60cb6564310553ac
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/node_modules/react-native-screen-transitions/.bun-tag-badda6a8db1cbf44 b/.bun-tag-badda6a8db1cbf44
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/lib/commonjs/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js b/lib/commonjs/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
+index ab7dfdc8dee1cff3e0c77ac33ecd005fcb9d82d4..8837b8854f009e49d2af7267d6eb86edabc9536e 100644
+--- a/lib/commonjs/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
++++ b/lib/commonjs/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
+@@ -38,7 +38,7 @@ const createTransitionAccessor = (sources, originIndex = 0, descendantSources) =
+     }
+     return currentSources;
+   };
+-  const buildScope = (sourceIndex, currentSources) => {
++  function buildScope(sourceIndex, currentSources) {
+     "worklet";
+ 
+     const source = currentSources[sourceIndex];
+@@ -58,7 +58,7 @@ const createTransitionAccessor = (sources, originIndex = 0, descendantSources) =
+         return buildScope(targetIndex, currentSources);
+       }
+     };
+-  };
++  }
+   return target => {
+     "worklet";
+ 
+diff --git a/lib/commonjs/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js b/lib/commonjs/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
+index 23037529e7662613847a9ef3e363f31196fb1511..7da324339108ec4922da883a467e35bf94f52584 100644
+--- a/lib/commonjs/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
++++ b/lib/commonjs/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
+@@ -27,7 +27,7 @@ const useMaybeBlockVisibility = isFloatingOverlay => {
+     pendingLifecycleRequestKind
+   } = _system.SystemStore.getBag(currentScreenKey);
+   const hasVisibilityGateOpened = (0, _reactNativeReanimated.useSharedValue)(false);
+-  const shouldBlockVisibility = (0, _reactNativeReanimated.useSharedValue)(!isFloatingOverlay);
++  const shouldBlockVisibility = (0, _reactNativeReanimated.useSharedValue)(!isFloatingOverlay && _reactNative.Platform.OS !== "web");
+ 
+   /**
+    * Visibility has to start blocked before the first animated style pass.
+@@ -78,7 +78,7 @@ const useMaybeBlockVisibility = isFloatingOverlay => {
+     "worklet";
+ 
+     return {
+-      pointerEvents: shouldBlockVisibility.get() ? "none" : "box-none"
++      pointerEvents: shouldBlockVisibility.get() ? "none" : (_reactNative.Platform.OS === "web" ? "auto" : "box-none")
+     };
+   });
+   return {
+diff --git a/lib/module/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js b/lib/module/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
+index a358d5b38e7a6c080048637bd3ce2e94aa16f4e5..86ba783a027005b1eee2d1988d9bcd6f98df80e2 100644
+--- a/lib/module/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
++++ b/lib/module/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.js
+@@ -34,7 +34,7 @@ export const createTransitionAccessor = (sources, originIndex = 0, descendantSou
+     }
+     return currentSources;
+   };
+-  const buildScope = (sourceIndex, currentSources) => {
++  function buildScope(sourceIndex, currentSources) {
+     "worklet";
+ 
+     const source = currentSources[sourceIndex];
+@@ -54,7 +54,7 @@ export const createTransitionAccessor = (sources, originIndex = 0, descendantSou
+         return buildScope(targetIndex, currentSources);
+       }
+     };
+-  };
++  }
+   return target => {
+     "worklet";
+ 
+diff --git a/lib/module/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js b/lib/module/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
+index 814ea253052b77f3d6c336c0a054e0332ff0bd3c..b5049cd4746168281771b2c75ed1e313e70ef50f 100644
+--- a/lib/module/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
++++ b/lib/module/shared/providers/screen/styles/hooks/use-maybe-block-visibility.js
+@@ -1,6 +1,7 @@
+ "use strict";
+ 
+-import { useWindowDimensions } from "react-native";
++import { Platform, useWindowDimensions } from "react-native";
++const UNBLOCKED_POINTER_EVENTS = Platform.OS === "web" ? "auto" : "box-none";
+ import { useAnimatedProps, useAnimatedReaction, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+ import { AnimationStore } from "../../../../stores/animation.store";
+ import { SystemStore } from "../../../../stores/system.store";
+@@ -23,7 +24,7 @@ export const useMaybeBlockVisibility = isFloatingOverlay => {
+     pendingLifecycleRequestKind
+   } = SystemStore.getBag(currentScreenKey);
+   const hasVisibilityGateOpened = useSharedValue(false);
+-  const shouldBlockVisibility = useSharedValue(!isFloatingOverlay);
++  const shouldBlockVisibility = useSharedValue(!isFloatingOverlay && Platform.OS !== "web");
+ 
+   /**
+    * Visibility has to start blocked before the first animated style pass.
+@@ -74,7 +75,7 @@ export const useMaybeBlockVisibility = isFloatingOverlay => {
+     "worklet";
+ 
+     return {
+-      pointerEvents: shouldBlockVisibility.get() ? "none" : "box-none"
++      pointerEvents: shouldBlockVisibility.get() ? "none" : UNBLOCKED_POINTER_EVENTS
+     };
+   });
+   return {
+diff --git a/src/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.ts b/src/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.ts
+index 8ba91e32be583a593276902ccc64f9f9b13d293d..7164dbfb093341dda3f084017a94cd0bf6709aa5 100644
+--- a/src/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.ts
++++ b/src/shared/providers/screen/animation/helpers/accessors/use-build-transition-accessor.ts
+@@ -63,10 +63,14 @@ export const createTransitionAccessor = (
+ 		return currentSources;
+ 	};
+ 
+-	const buildScope = (
++	// Hoisted `function` on purpose: the worklets babel plugin captures the
++	// closure of the nested `transition` worklet EAGERLY, and a self-referencing
++	// `const` arrow hits its own temporal dead zone on web
++	// ("Cannot access 'buildScope' before initialization").
++	function buildScope(
+ 		sourceIndex: TransitionSourceIndex,
+ 		currentSources: readonly TransitionAccessorSource[],
+-	): ScreenInterpolationProps | null => {
++	): ScreenInterpolationProps | null {
+ 		"worklet";
+ 		const source = currentSources[sourceIndex];
+ 		if (!source) return null;
+diff --git a/src/shared/providers/screen/styles/hooks/use-maybe-block-visibility.tsx b/src/shared/providers/screen/styles/hooks/use-maybe-block-visibility.tsx
+index e0393e2a44cd8073521031e3cf49596ecce3d4d8..c17222228f1f02357ad1cbdb695bad69cc9967ca 100644
+--- a/src/shared/providers/screen/styles/hooks/use-maybe-block-visibility.tsx
++++ b/src/shared/providers/screen/styles/hooks/use-maybe-block-visibility.tsx
+@@ -1,4 +1,4 @@
+-import { useWindowDimensions } from "react-native";
++import { Platform, useWindowDimensions } from "react-native";
+ import {
+ 	useAnimatedProps,
+ 	useAnimatedReaction,
+@@ -11,6 +11,15 @@ import { getVisibilityBlockOffset } from "../../../../utils/visibility-block-off
+ import { useDescriptorDerivations } from "../../descriptors";
+ import { resolveScreenVisibilityGate } from "../helpers/visibility-gate";
+ 
++/**
++ * react-native-web implements `box-none` as `.cls > * { pointer-events: none }`
++ * and RN-web children never opt back in, so `box-none` here makes every screen
++ * completely untappable on web. Plain `auto` keeps web interactive; native
++ * keeps `box-none` so empty scene areas pass touches through.
++ */
++const UNBLOCKED_POINTER_EVENTS =
++	Platform.OS === "web" ? ("auto" as const) : ("box-none" as const);
++
+ export const useMaybeBlockVisibility = (isFloatingOverlay?: boolean) => {
+ 	const { height } = useWindowDimensions();
+ 	const { currentScreenKey } = useDescriptorDerivations();
+@@ -21,7 +30,14 @@ export const useMaybeBlockVisibility = (isFloatingOverlay?: boolean) => {
+ 		SystemStore.getBag(currentScreenKey);
+ 
+ 	const hasVisibilityGateOpened = useSharedValue(false);
+-	const shouldBlockVisibility = useSharedValue(!isFloatingOverlay);
++	// Web: never start blocked. Reanimated-web cannot update class-backed
++	// animated props (pointerEvents renders as a CSS class), so an initial
++	// `pointerEvents: "none"` would be baked into the DOM permanently and every
++	// screen would be untappable. The blank-frame gate this protects against is
++	// a native (Liquid Glass) concern anyway.
++	const shouldBlockVisibility = useSharedValue(
++		!isFloatingOverlay && Platform.OS !== "web",
++	);
+ 
+ 	/**
+ 	 * Visibility has to start blocked before the first animated style pass.
+@@ -81,7 +97,7 @@ export const useMaybeBlockVisibility = (isFloatingOverlay?: boolean) => {
+ 		return {
+ 			pointerEvents: shouldBlockVisibility.get()
+ 				? ("none" as const)
+-				: ("box-none" as const),
++				: UNBLOCKED_POINTER_EVENTS,
+ 		};
+ 	});
+ 
