@@ -155,6 +155,13 @@ export const layout = {
    * web containers are auto-height and can't propagate a percentage down.
    */
   webNavHeight: 64,
+  /**
+   * FIXED height of the floating Android tab bar capsule. A constant for the
+   * same reason `webNavHeight` is: the bar floats OVER the content (that is what
+   * gives its blur something to blur), so `Screen` has to reserve room under it,
+   * and it can't measure a sibling it doesn't own.
+   */
+  floatingTabBarHeight: 72,
 } as const;
 
 /**

@@ -23,7 +23,7 @@ export default function ShopScreen() {
   const products = productsByCategory(filter);
 
   return (
-    <Screen scroll underWebNav>
+    <Screen scroll underWebNav underTabBar>
       <ScreenHeader titleTx="catalog.title" style={styles.header}>
         <Caption
           color="textMuted"

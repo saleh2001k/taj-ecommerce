@@ -1,6 +1,8 @@
-import { Link, Slot, usePathname } from 'expo-router';
+import { BlurTargetView } from 'expo-blur';
+import { Link, Slot, Tabs, usePathname } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView, type AndroidSymbol, type SymbolViewProps } from 'expo-symbols';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import { StyleSheet, withUnistyles } from 'react-native-unistyles';
@@ -8,6 +10,7 @@ import type { SFSymbol } from 'sf-symbols-typescript';
 
 import { H3, Label } from '@/components/ui';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { FloatingTabBar } from '@/navigation/FloatingTabBar';
 import { breakpoints } from '@/theme';
 import { iconSizes } from '@/theme/tokens';
 
@@ -47,10 +50,18 @@ type NavItem = {
   icon: SymbolViewProps['name'];
   /** Native tab bar: real SF Symbols on iOS, Material Symbols on Android. */
   sf: { default: SFSymbol; selected: SFSymbol };
+  /**
+   * Material Symbols name. Also the key `FloatingTabBar` draws its FILLED glyph
+   * from, so the Android bar and the iOS tab bar can't disagree about which
+   * icon a route owns.
+   */
   md: AndroidSymbol;
 };
 
-const NAV_ITEMS: NavItem[] = [
+// `as const satisfies` rather than a `NavItem[]` annotation: the literal `md`
+// values have to survive for `FloatingTabBar` to type-check them against the
+// glyphs it can actually draw.
+const NAV_ITEMS = [
   {
     name: 'index',
     href: '/',
@@ -83,7 +94,7 @@ const NAV_ITEMS: NavItem[] = [
     sf: { default: 'person', selected: 'person.fill' },
     md: 'person',
   },
-];
+] as const satisfies readonly NavItem[];
 
 export default function TabLayout() {
   // "There is no standard system tab bar on web" (Expo docs), and the JS Tabs
@@ -91,6 +102,10 @@ export default function TabLayout() {
   // website chrome (responsive top nav), and the real system tab bar stays
   // native-only. Platform.OS is constant, so this branch never flips at runtime.
   if (Platform.OS === 'web') return <WebsiteLayout />;
+  // Android's system tab bar is a full-width opaque Material strip — there is no
+  // Android equivalent of iOS 26's liquid glass — so it gets a bar we draw
+  // ourselves instead (see below).
+  if (Platform.OS === 'android') return <AndroidFloatingTabs />;
 
   return <NativeBottomTabs />;
 }
@@ -174,11 +189,79 @@ function NativeBottomTabs() {
   );
 }
 
+/* ── Android: the JS navigator, with our own floating bar ── */
+
+const ANDROID_TAB_OPTIONS = {
+  // Screens draw their own chrome (`ui/Header.tsx`), exactly as under NativeTabs.
+  headerShown: false,
+  // Scenes cross-shift while the selection pill springs across the bar.
+  animation: 'shift',
+} as const;
+
+/**
+ * `Tabs` is React Navigation's JS bottom-tabs navigator, so its bar is a React
+ * component we can replace wholesale — `FloatingTabBar` renders a blurred
+ * capsule floating over the screens. The `Tabs.Screen` children exist only to
+ * fix the ORDER (the router would otherwise sort the route files alphabetically:
+ * components, index, profile, shop).
+ *
+ * ── Layout: bar is a SIBLING of the blur target, not inside it ──
+ * `expo-blur` on Android samples a designated `BlurTargetView` for its backdrop
+ * (it does NOT read the window like iOS). The target here wraps ONLY the
+ * `<Tabs>` screens; the `<Tabs>` own bar is disabled (`tabBar={() => null}`) and
+ * `FloatingTabBar` renders as a SIBLING, floating over the screens.
+ *
+ * The bar CANNOT be inside the target. A `BlurView` nested in its own
+ * `BlurTargetView` makes the hardware RenderNode tree self-reference —
+ * `RenderNode::prepareTree` recurses until the render thread stack overflows
+ * (SIGSEGV, `libhwui`). That is exactly why the bar was pulled out of `<Tabs>`
+ * and made router-driven (it no longer needs the navigator's tab-bar props).
+ *
+ * ── Why the target ref is paired with an `onLayout` flag ──
+ * `BlurView` resolves its native target once, in `componentDidMount`, via
+ * `findNodeHandle(blurTarget.current)`, and re-resolves in `componentDidUpdate`
+ * only when `blurTarget.current` *changes*. A plain `useRef` can't drive that:
+ * ref mutation triggers no re-render, and a stable ref reports the same value on
+ * both sides of the compare. `BlurTargetView` types `ref` as an object ref (no
+ * callback allowed), so: hold the object ref, and on its first `onLayout` — by
+ * which point `.current` is populated — flip `ready`, rebuilding a FRESH
+ * `{ current: node }` object. That null→node transition is what makes BlurView
+ * resolve its target and actually blur.
+ */
+const ANDROID_NO_TAB_BAR = () => null;
+
+function AndroidFloatingTabs() {
+  const targetRef = useRef<View | null>(null);
+  const [ready, setReady] = useState(false);
+  // Recomputed only when `ready` flips — a new object whose `current` is now the
+  // populated node, so BlurView sees the change and resolves its native target.
+  const blurTarget = useMemo(() => ({ current: ready ? targetRef.current : null }), [ready]);
+
+  return (
+    <View style={styles.flex}>
+      <BlurTargetView ref={targetRef} style={styles.flex} onLayout={() => setReady(true)}>
+        <Tabs screenOptions={ANDROID_TAB_OPTIONS} tabBar={ANDROID_NO_TAB_BAR}>
+          {NAV_ITEMS.map(item => (
+            <Tabs.Screen key={item.name} name={item.name} />
+          ))}
+        </Tabs>
+      </BlurTargetView>
+
+      <FloatingTabBar items={NAV_ITEMS} blurTarget={blurTarget} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create((theme, rt) => ({
   brand: {
     letterSpacing: theme.typography.letterSpacing.wider,
   },
   content: {
+    flex: 1,
+  },
+  // The Android BlurTargetView wrapping the tab navigator — must fill the screen
+  // or it collapses and the blur samples nothing.
+  flex: {
     flex: 1,
   },
   header: {

@@ -17,6 +17,9 @@ import { StyleSheet } from 'react-native-unistyles';
 // the Screen an explicit viewport height fixes every screen the same way; native
 // keeps `flex: 1`, which is correct there.
 const IS_WEB = Platform.OS === 'web';
+// Only Android floats a tab bar over its screens (iOS uses the real system tab
+// bar, which the navigator already lays out around).
+const IS_ANDROID = Platform.OS === 'android';
 
 type Insets = 'all' | 'bottom' | 'top' | 'none';
 
@@ -38,20 +41,30 @@ export type ScreenProps = PropsWithChildren<{
    * the fold with no way to scroll to them.
    */
   underWebNav?: boolean;
+  /**
+   * Android only: this screen sits under the floating tab bar capsule
+   * (`navigation/FloatingTabBar.tsx`). The bar is absolutely positioned so the
+   * content scrolls THROUGH its blur, which means the last rows would end up
+   * behind it — reserve its height at the bottom. A no-op on iOS (the system
+   * tab bar is laid out, not floated) and on web (no tab bar at all).
+   */
+  underTabBar?: boolean;
   contentContainerStyle?: ScrollViewProps['contentContainerStyle'];
   style?: ViewStyle;
 }>;
 
 const styles = StyleSheet.create((theme, rt) => ({
-  content: (padded: boolean, insets: Insets, grow: boolean) => ({
+  content: (padded: boolean, insets: Insets, grow: boolean, underTabBar: boolean) => ({
     [grow ? 'flexGrow' : 'flex']: 1,
     alignSelf: 'center',
     // Cap width and center on large screens; full-bleed on phones.
     maxWidth: { xs: '100%', lg: theme.layout.contentMaxWidth },
     paddingBottom:
-      insets === 'all' || insets === 'bottom'
+      (insets === 'all' || insets === 'bottom'
         ? rt.insets.bottom + theme.spacing.md
-        : theme.spacing.none,
+        : theme.spacing.none) +
+      // The capsule's own height plus the gap it floats above the inset.
+      (underTabBar ? theme.layout.floatingTabBarHeight + theme.spacing.sm : theme.spacing.none),
     paddingHorizontal: padded ? theme.spacing.lg : theme.spacing.none,
     paddingTop:
       insets === 'all' || insets === 'top' ? rt.insets.top + theme.spacing.md : theme.spacing.none,
@@ -78,16 +91,21 @@ export function Screen({
   insets = 'bottom',
   header,
   underWebNav = false,
+  underTabBar = false,
   contentContainerStyle,
   style,
 }: ScreenProps) {
   const rootStyle = IS_WEB ? styles.rootWeb(underWebNav) : styles.root;
+  const clearsTabBar = IS_ANDROID && underTabBar;
 
   if (scroll) {
     const scroller = (
       <ScrollView
         style={styles.root}
-        contentContainerStyle={[styles.content(padded, insets, true), contentContainerStyle]}
+        contentContainerStyle={[
+          styles.content(padded, insets, true, clearsTabBar),
+          contentContainerStyle,
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -114,9 +132,13 @@ export function Screen({
     return (
       <View style={[rootStyle, style]}>
         {header}
-        <View style={styles.content(padded, insets, false)}>{children}</View>
+        <View style={styles.content(padded, insets, false, clearsTabBar)}>{children}</View>
       </View>
     );
   }
-  return <View style={[rootStyle, styles.content(padded, insets, false), style]}>{children}</View>;
+  return (
+    <View style={[rootStyle, styles.content(padded, insets, false, clearsTabBar), style]}>
+      {children}
+    </View>
+  );
 }

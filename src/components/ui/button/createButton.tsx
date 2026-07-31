@@ -189,6 +189,9 @@ export function createButton(displayName: string, variant: ButtonVariant) {
 
     return (
       <AnimatedPressable
+        // Touches must hit the pressable itself — otherwise locationX/Y are
+        // relative to the label/icon and the ripple starts offset / under-floods.
+        pointerEvents="box-only"
         accessibilityRole="button"
         accessibilityState={{ disabled: isDisabled, busy: loading }}
         disabled={isDisabled}

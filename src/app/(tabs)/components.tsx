@@ -7,7 +7,7 @@ import { GALLERY, type GalleryEntry } from '@/components/gallery/registry';
 
 export default function ComponentsScreen() {
   return (
-    <Screen scroll underWebNav>
+    <Screen scroll underWebNav underTabBar>
       <ScreenHeader titleTx="components.title" style={styles.header}>
         <P color="textMuted" tx="components.subtitle" style={styles.subtitle} />
       </ScreenHeader>

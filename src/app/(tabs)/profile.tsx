@@ -66,7 +66,7 @@ const MENU: MenuItem[] = [
 
 export default function ProfileScreen() {
   return (
-    <Screen scroll underWebNav>
+    <Screen scroll underWebNav underTabBar>
       <ScreenHeader titleTx="profile.title" style={styles.header} />
 
       {/* Identity — no auth in this demo, so a guest identity that explains
